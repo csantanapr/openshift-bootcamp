@@ -17,4 +17,4 @@ EXPOSE 80
 ENV NAME 'Bootcamp Lab06'
 
 # Run app.py when the container launches
-CMD ["python", "code/app.py"]
+CMD ["python", "app.py"]
