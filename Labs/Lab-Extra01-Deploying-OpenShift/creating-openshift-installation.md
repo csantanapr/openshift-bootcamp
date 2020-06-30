@@ -1,12 +1,15 @@
 
-# set the cluster name
+# Installation Commands to Install OpenShift on VMWare
 
-#make new install directory
+This lab will focus on the commands required to install the OpenShift platform on VMWare infrastructure. As mentioned in the lectures, this is purely for informational purposes and will not work in the current environment.
+
+Make new install directory and change to it
 ```
 mkdir ocp-install
 cd ocp-install
 ```
-#create a new ssh key
+
+Create a new ssh key for the installation
 ```
 $ ssh-keygen -t rsa -b 4096 -N '' -f ocp_rsa
 Generating public/private rsa key pair.
@@ -31,7 +34,7 @@ The key's randomart image is:
 This will output two new files, `ocp_rsa` and `ocp_rsa.pub`.
 
 Create the below example `install-config.yaml` used in a cluster deployed to VMWare infrastructure using vSphere integration capabilities. 
-
+```
 cat <<EOF > install-config.yaml
 apiVersion: v1
 baseDomain: openshift.cloud.lab.com
@@ -96,6 +99,7 @@ imageContentSources:
   - mirror-registry.ocp4.openshift.cloud.lab.com:5001/ocp4/openshift4
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 EOF
+```
 
 This has been optimized for pulling images from a private internal image repository where images are mirrored from Red Hat repositories to a local mirror repository. We're not able to do this in this lab so it is just here as a reference.
 
