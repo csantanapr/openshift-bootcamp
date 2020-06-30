@@ -33,7 +33,8 @@ The key's randomart image is:
 
 This will output two new files, `ocp_rsa` and `ocp_rsa.pub`.
 
-Create the below example `install-config.yaml` used in a cluster deployed to VMWare infrastructure using vSphere integration capabilities. 
+Create the below example `install-config.yaml` used in a cluster deployed to VMWare infrastructure using vSphere integration capabilities. Note that you'll need to copy the contents of your new `ocp_rsa.pub` into the `sshKey: 'SSH_PUBLIC_KEY'` section of this file.
+
 ```
 cat <<EOF > install-config.yaml
 apiVersion: v1
@@ -103,7 +104,7 @@ EOF
 
 This has been optimized for pulling images from a private internal image repository where images are mirrored from Red Hat repositories to a local mirror repository. We're not able to do this in this lab so it is just here as a reference.
 
-The `c` tool is in your `/home/ibmdemo` directory. Move this into the current directory
+The `openshift-install` tool is in your `/home/ibmdemo` directory. Move this into the current directory
 
 ```
 $ mv ../openshift-install .
