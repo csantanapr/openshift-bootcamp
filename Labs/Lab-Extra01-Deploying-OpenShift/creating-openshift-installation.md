@@ -178,6 +178,7 @@ Now we run the `wait-for bootstrap-complete` command and wait for the bootstrapp
 
 ```
 $ ./openshift-install wait-for bootstrap-complete --dir=$(pwd) --log-level=info
+INFO Waiting up to 30m0s for the Kubernetes API at https://api.ocp4.openshift.cloud.lab.com:6443...
 ```
 
 When bootstrap procecss is complete, we can remove the bootstrap node from the cluster
@@ -185,6 +186,7 @@ When bootstrap procecss is complete, we can remove the bootstrap node from the c
 Now we run the `wait-for install-complete` command and wait for the installation process to complete. In this environment it will not work, but this exercise it just to get used to the commands run to deploy an OpenShift cluster.
 ```
 $ ./openshift-install wait-for install-complete --dir=$(pwd)
+INFO Waiting up to 30m0s for the cluster at https://api.ocp4.openshift.cloud.lab.com:6443 to initialize...
 ```
 
 In a normal scenario, the cluster should have finished installing.
