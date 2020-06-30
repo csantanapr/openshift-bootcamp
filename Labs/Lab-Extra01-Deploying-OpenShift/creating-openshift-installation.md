@@ -1,5 +1,5 @@
 
-# Installation Commands to Install OpenShift on VMWare
+# Lab Extra01 Ex 1 - Installation Commands to Install OpenShift on VMWare
 
 This lab will focus on the commands required to install the OpenShift platform on VMWare infrastructure. As mentioned in the lectures, this is purely for informational purposes and will not work in the current environment.
 
@@ -103,7 +103,11 @@ EOF
 
 This has been optimized for pulling images from a private internal image repository where images are mirrored from Red Hat repositories to a local mirror repository. We're not able to do this in this lab so it is just here as a reference.
 
-The `openshift-install` tool is in your `/home/ibmdemo` directory.
+The `c` tool is in your `/home/ibmdemo` directory. Move this into the current directory
+
+```
+$ mv ../openshift-install .
+```
 
 Use the `openshift-install` tool to generate a set of manifests from the `install-config.yaml` we created earlier.
 ```
