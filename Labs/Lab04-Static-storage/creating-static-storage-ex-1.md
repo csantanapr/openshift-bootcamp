@@ -105,7 +105,6 @@ Now that we see the PVC is bound to the PV created earlier, we can go ahead and 
 Create the following MySQL app
 
 ```
-cat <<EOF > mysql-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -141,7 +140,7 @@ spec:
       - name: mysql-persistent-storage
         persistentVolumeClaim:
           claimName: user99-pvc-vol1
-EOF
+
 ```
 
 Note the use of the following volume:

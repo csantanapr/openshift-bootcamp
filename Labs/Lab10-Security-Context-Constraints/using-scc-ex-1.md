@@ -32,7 +32,6 @@ First, we'll create something called a Headless Service. A headless service is a
 To create the headless service, create a file calledd `headless-svc.yaml`
 
 ```
-cat <<EOF > headless-svc.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -45,7 +44,6 @@ spec:
   - port: 9042
   selector:
     app: cassandra
-EOF
 ```
 
 Create the service
@@ -61,7 +59,6 @@ Next we need to deploy the StatefulSet. Below is the definition for a Cassandra 
 Create a new file `cassandra-sts.yaml`
 
 ```
-cat <<EOF > cassandra-sts.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -144,7 +141,6 @@ spec:
       resources:
         requests:
           storage: 1Gi
-EOF
 ```
 
 Verify the Statefulset was created
