@@ -93,7 +93,7 @@ resources:
     memory: 512Mi
 ```
 
-Edit your current deployment using `oc edit websphere-liberty-app`. This wll open an editor in the termiinal, similar to `vi`.
+Edit your current deployment using `oc edit deployment websphere-liberty-app`. This wll open an editor in the termiinal, similar to `vi`.
 
 Add the resource defined above to the `spec.template.spec.containers.[websphere-liberty-app]` so it looks similar to the following
 
