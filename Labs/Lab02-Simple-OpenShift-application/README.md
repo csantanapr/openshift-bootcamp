@@ -1,6 +1,6 @@
 # Lab02 Simple OpenShift Applications
 
-This lab contains 4 exercises
+This lab contains 2 exercises
 
 Ex 1 - [MariaDB application](openshift-mariadb-application-ex-1.md)
 
