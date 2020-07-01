@@ -158,7 +158,7 @@ Containers:
 <additional content>
 ```
 
-A simple way to achieve this from the CLI is also given below
+A simple way to achieve this from the CLI is also given below. You do not need to run this, as it will set the same resources as above, it is just here for reference.
 
 ```
 $ oc set resources deployment websphere-liberty-app -c=websphere-liberty-app --limits=cpu=200m,memory=256Mi --requests=cpu=100m,memory=128Mi
