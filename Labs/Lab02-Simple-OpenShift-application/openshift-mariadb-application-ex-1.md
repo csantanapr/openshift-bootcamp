@@ -39,14 +39,12 @@ bXlwYXNzdzByZA==
 Create a file called `mariadb-secret.yaml`
 ​
 ```
-cat <<EOF  > mariadb-root-pass.yaml
 apiVersion: v1
 kind: Secret
 metadata:
   name: mariadb-root-pass
 data:
   password: bXlwYXNzdzByZA==
-EOF
 ```
 
 Use `oc create -f <file>` to create the Secret
@@ -116,12 +114,10 @@ ConfigMap provide us with a way to store non-sensitive information, such as envi
 
 First, create a file named `max_allowed.cnf` with the following content:
 ```
-cat <<EOF > max_allowed.cnf
 [mysqld]
 max_connections = 151
 max_user_connections = 145
 thread_cache_size = 151
-EOF
 ```
 
 Create the ConfigMap with `oc`
@@ -153,7 +149,6 @@ Now, we'll set up a `deployment.yaml` file to bring the Deployment specification
 Create a file called `mariadb-deployment.yaml` with the following data
 ​
 ```
-cat <<EOF > mariadb-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -182,7 +177,6 @@ spec:
       volumes:
       - emptyDir: {}
         name: mariadb-volume
-EOF
 ```
 
 We have two secrets to be added to this deployment

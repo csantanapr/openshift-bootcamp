@@ -24,7 +24,6 @@ $ cd Lab02/was
 Create a file called `ws-deployment.yaml` with the following data to define the Deployment specification
 ​
 ```
-cat <<EOF > ws-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -50,7 +49,6 @@ spec:
       volumes:
         - name: was-persistence
           emptyDir: {}
-EOF
 ```
 ​
 Create the resources in OpenShift with the `oc create` command. You can do this on an entire directory too.
@@ -236,7 +234,6 @@ The Service will expose the specified container port and provide it with an IP a
 Create a file called `ws-svc.yaml` with the following content
 ​
 ```
-cat <<EOF > ws-svc.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -246,7 +243,6 @@ spec:
   - port: 9080
   selector:
     app: websphere-liberty-app
-EOF
 ```
 ​
 Create the Service in OpenShift
