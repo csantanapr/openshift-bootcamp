@@ -324,7 +324,7 @@ Controlled By:      ReplicaSet/my-python-v1-python-app-554b565f5
 Containers:
   python-app:
     Container ID:   cri-o://be250c4bd6b6a87988c8f09246d7f2f9e9e3e130a7348bb813606c605b1281fc
-    Image:          quay.io/lfloris/my-python:v1                                                                 <<<<<<<<<<<<<<<<<<< NEW IMAGE
+    Image:          quay.io/lfloris/my-python:latest                                                                 <<<<<<<<<<<<<<<<<<< NEW IMAGE
     Image ID:       quay.io/lfloris/my-python@sha256:4256b771943b04a078bf4809f7d6741ad027b14bcf2afd1f09e27f9baeab87eb
     Port:           80/TCP
     Host Port:      0/TCP
@@ -356,8 +356,8 @@ Events:
   Type    Reason     Age        From               Message
   ----    ------     ----       ----               -------
   Normal  Scheduled  <unknown>  default-scheduler  Successfully assigned user99-lab09-helm3/my-python-v1-python-app-554b565f5-6vbvn to worker1
-  Normal  Pulling    2m22s      kubelet, worker1   Pulling image "quay.io/lfloris/my-python:v1"
-  Normal  Pulled     2m20s      kubelet, worker1   Successfully pulled image "quay.io/lfloris/my-python:v1"
+  Normal  Pulling    2m22s      kubelet, worker1   Pulling image "quay.io/lfloris/my-python:latest"
+  Normal  Pulled     2m20s      kubelet, worker1   Successfully pulled image "quay.io/lfloris/my-python:latest"
   Normal  Created    2m20s      kubelet, worker1   Created container python-app
   Normal  Started    2m19s      kubelet, worker1   Started container python-app
 ```
