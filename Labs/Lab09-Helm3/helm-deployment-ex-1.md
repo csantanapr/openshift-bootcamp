@@ -75,25 +75,31 @@ kind: Deployment
 metadata:
   name: {{ include "python-app.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "python-app.name" . }}
-    helm.sh/chart: {{ include "python-app.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "python-app.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "python-app.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- include "python-app.selectorLabels" . | nindent 6 }}
+      user: {{ .Values.myuserid }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "python-app.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- include "python-app.selectorLabels" . | nindent 8 }}
+        user: {{ .Values.myuserid }}
     spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "python-app.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
@@ -149,11 +155,29 @@ spec:
         user: {{ .Values.myuserid }}
 ```
 
+Also change the `image` section from
+
+```
+image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+```
+
+to 
+
+```
+image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+```
+
 Ensure that the indentation matches up with the other list entries.
 
 We also need to add this selector to our `python-app/templates/service.yaml` `spec.selector`. The result looks like this
 
 ```
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "python-app.fullname" . }}
+  labels:
+    {{- include "python-app.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -162,8 +186,7 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/name: {{ include "python-app.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- include "python-app.selectorLabels" . | nindent 4 }}
     user: {{ .Values.myuserid }}
 ```
 
@@ -174,8 +197,14 @@ Edit the `python-app/values.yaml` file to add our new `myuserid` parameter and v
 We need to do the following
 
 1. Change the `image.repository` from `repository: nginx` to `quay.io/lfloris/my-python`
-2. Change the `image.tag` from `stable` to `latest`
-3. Add `myuserid: user99` to the file
+2. Add the following parameter `image.tag: v1` so that the code block looks like the following
+```
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: v1
+```
+3. Add `myuserid: userXX` to the file, replacing `userXX` with your own user ID.
 
 Once the changes have been made, our Helm application templates are now ready for testing and packaging.
 
