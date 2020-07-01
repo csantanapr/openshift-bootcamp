@@ -282,10 +282,10 @@ Successfully packaged chart and saved it to: /home/ibmdemo/python-app-0.1.0.tgz
 
 Now that we have a packaged Helm chart, we can deploy another instance of it to our cluster, but this time passing different values to the install command instead of using the default values we used in the `values.yaml` earlier. We can do this by creating our own `values.yaml` file locally, which will override any matching parameters found in the original chart values.
 
-For example, if we wanted to use a different image tag instead of `latest`, potentially simulating another team that is deploying a stable version of our Python application, we can install the chart using the following
+For example, if we wanted to use a different image tag instead of `v1`, potentially simulating another team that is deploying a stable version of our Python application, we can install the chart using the following
 
 ```
-$ helm3 install my-python-v1 python-app-0.1.0.tgz --set image.tag=v1
+$ helm3 install my-python-v1 python-app-0.1.0.tgz --set image.tag=latest
 ```
 
 Once the application is deployed, we can check the image used in the pod spec
