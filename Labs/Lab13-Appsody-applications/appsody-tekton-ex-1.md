@@ -14,10 +14,18 @@ $ oc new-project userXX-lab13-appsody
 
 Replace `userXX` with your user ID or other name.
 
+This lab is split into two parts
+
+Part 1 - Use Appsody to build and deploy an application using Kabanero stacks
+
+Part 2 - Push your Appsody application to GitHub and create a Tekton pipeline to automatically build the application from source code
+
+# Part 1 - Using Appsody to Deploy an Application
+
 Open the Cloud pak for Applications Landing page and head to the **Instances** overview by opening the overview in the left upper corner.
 Under **stacks**, copy the URL into your clipboard. 
 
-![title](img/appsody_url.png)
+![](img/appsody_url.png)
 
 Open a terminal window and run the following command:
 ```
@@ -57,7 +65,7 @@ This command will select the nodejs-express stack images from the kabanero repos
 
 Open the directory in your IDE environment. In this lab we will be using Microsoft Visual Studio Code. You can open VS Code directly from the terminal by running **code .** in your project directory. 
 
-![title](img/vs_code.png)
+![](img/vs_code.png)
 
 
 Ensure that you open the terminal view (View>Terminal)
@@ -100,6 +108,12 @@ You can do this by running the following (replace `userXX` with your own user ID
 ```
 $ appsody deploy --tag userXX-lab13-appsody/nodejs-demo:v1 --push-url default-route-openshift-image-registry.apps.demo.ibmdte.net --push --pull-url image-registry.openshift-image-registry.svc.cluster.local:5000 --namespace userXX-lab13-appsody
 ```
+
+This will deploy the NodeJS application to OpenShift. You can view the status of the pods by using `oc get pods`.
+
+You can also view the generated AppsodyApplication resource type by navigating to Operators > Installed Operators > Appsody Operator > AppsodyApplication.
+
+![](img/appsodyapplication-resource.png)
 
 After you created your deployment manifest, you can then push your application code to Github.
 
@@ -188,6 +202,7 @@ spec:
         privileged: true
       image: appsody/appsody-buildah:0.5.3-buildah1.9.0
       command: ['buildah', 'push', '--tls-verify=false', '$(inputs.resources.docker-image.url)', 'docker://$(inputs.resources.docker-image.url)']
+      serviceAccount: appsody-sa
       volumeMounts:
          - mountPath: /var/lib/containers
            name: varlibcontainers
@@ -215,11 +230,11 @@ Retrieve the secret names that contain **dockercfg**:
 
 ```
 $ oc get secrets | grep dockercfg
-appsody-sa-dockercfg-25j8m   kubernetes.io/dockercfg               1      46m
-builder-dockercfg-k5btj      kubernetes.io/dockercfg               1      68m
-default-dockercfg-9scx6      kubernetes.io/dockercfg               1      68m
-deployer-dockercfg-z7s27     kubernetes.io/dockercfg               1      68m
-pipeline-dockercfg-p82c9     kubernetes.io/dockercfg               1      68m
+appsody-sa-dockercfg-z68jp                 kubernetes.io/dockercfg               1      19m
+builder-dockercfg-7mqqv                    kubernetes.io/dockercfg               1      12h
+default-dockercfg-558dr                    kubernetes.io/dockercfg               1      12h
+deployer-dockercfg-c7cqz                   kubernetes.io/dockercfg               1      12h
+pipeline-dockercfg-9zzlp                   kubernetes.io/dockercfg               1      12h
 ```
 
 You'll need to use the `default-dockercfg-xxxx` for the `secrets.name`, and the `builder-dockercfg-xxxx` in the `imagePullSecrets.name` sections of the ServiceAccount.
@@ -231,9 +246,9 @@ kind: ServiceAccount
 metadata:
   name: appsody-sa 
 secrets:
-- name: default-dockercfg-9scx6
+- name: default-dockercfg-558dr
 imagePullSecrets:
-- name: builder-dockercfg-k5btj
+- name: builder-dockercfg-7mqqv
 ``
 
 Create the Service Account
@@ -342,42 +357,51 @@ pipelinerun.tekton.dev/appsody-manual-pipeline-run created
 
 From the CP4Apps instances landing page, head to the **pipelines overview**:
 
-![title](img/overview_pipeline_landigpage.png)
+![](img/overview_pipeline_landigpage.png)
 
 In the Tekton view, set the adequate filter for your namespace and open the **pipelinerun** view:
 
-![title](img/pipelinefilter.png)
+![](img/pipelinefilter.png)
 
 We should see the Pipeline resource created for our project
 
-![title](img/pipeline-ui.png)
+![](img/pipeline-ui.png)
 
 We can also see the PipelineRun running
 
-![title](img/pipelinerun-running.png)
+![](img/pipelinerun-running.png)
 
 Follow along the progress of the pipelinerun through the log messages. In the Details section you can find more information including the pipelineresources and the scripts that each step in the pipeline passes through.
 
-The pipelinerun takes about 25 minutes to finish. You can identify a successful pipelinerun if every task in the pipeline has finished
+The pipelinerun takes about a little time to finish. You can identify a successful pipelinerun if every task in the pipeline has finished
 
-![title](img/pipelinerun-finished.png)
+![](img/pipelinerun-finished.png)
 
-Head back to the main OpenShift console to locate the nodejs application that results from the pipelinerun.
+Inspect the logs of each task to gain some additional insight into the code that each step is running
 
-![title](img/pipelinerun-openshift-app.png)
+![](img/pipelinerun-tasks.png)
 
-You can click on the application logo to get more information about the application. If you hover over the small arrow symbol you can directly access the application endpoint that is exposed via an OpenShift route.
+You can also inspect the pods that have run as a result of this pipeline
 
-![title](img/pipelinerun-openshift-app-view.png)
+```
+$ oc get pods
+NAME                                                        READY   STATUS      RESTARTS   AGE
+appsody-b949b4945-6h9jd                                     1/1     Running     0          2m13s
+appsody-manual-pipeline-run-appsody-build-5msc9-pod-75zgq   0/4     Completed   0          8m23s
+```
 
-Also notice from the data overview that the same port are exposed as you run in the container within your local development environment.
+Head back to the main OpenShift console to locate the nodejs application that results from the pipelinerun. You can click on the application logo to get more information about the application. If you hover over the small arrow symbol you can directly access the application endpoint that is exposed via an OpenShift route. Also notice from the data overview that the same port are exposed as you run in the container within your local development environment.
+
+![](img/pipelinerun-openshift-app.png)
+
+We can open the Route URL to check the application works
+
+![](img/application-ui.png)
 
 Notice that the application is of kind AppsodyApplication. This provides the API for the AppsodyOperator running inside the cluster to handle the lifecyclemanagement of your application.
 
-Head to the Administrator view and open the Installed Operators view. Choose the Appsody operator to check which applications it controls.
+Head to the Administrator view and navigate to Operators > Installed Operators. Choose the Appsody Operator to check which applications it manages. We should be able to see our deployed application here in the project created for this lab.
 
-![title](img/installed-operators-view.png)
+![](img/appsody-application-view.png)
 
-Ensure, the correct project is selected, find your application in the Appsody Application view.
-
-Lab complete.
+Lab complete. When finished, please clean up the created resources and delete the project.

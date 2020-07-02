@@ -1,0 +1,59 @@
+# project resources
+# replace instances of ibmadmin with another name of your choice
+# when applying this file, be sure to be in the ibmadmin-modres-project Project
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  name: ibmadmin-modres101-ibmadmin-modresapp
+  labels:
+    app: ibmadmin-modresapp
+spec:
+  selector:
+    matchExpressions:
+    - key: release
+      operator: In
+      values:
+      - ibmadmin-modres101
+  componentKinds:
+  - group: app.ibm.com
+    kind: Subscription
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: PlacementRule
+metadata:
+  name: ibmadmin-modresapp101-ibmadmin-modresapp
+  labels:
+    app: ibmadmin-modresapp
+    release: ibmadmin-modres101
+spec:
+  clusterReplicas: 1
+  clusterLabels:
+    matchLabels:
+      environment: Dev
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ibmadmin-modres101-ibmadmin-modresapp
+  labels:
+    app: ibmadmin-modresapp
+    release: ibmadmin-modres101
+spec:
+  channel: ibmadmin-modres-entitlement/ibmadmin-modres-devchan
+  name: ""
+  packageFilter:
+    version: ">=1.x"
+    labelSelector:
+      matchLabels:
+        package: ibmadmin-modres
+        component: main
+  placement:
+    placementRef:
+      name: ibmadmin-modresapp101-ibmadmin-modresapp
+      kind: PlacementRule
+      group: app.ibm.com
+  overrides:
+  - clusterName: "/"
+    clusterOverrides:
+    - path: "metadata.namespace"
+      value: default
