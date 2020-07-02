@@ -260,6 +260,19 @@ allowedCapabilities:
 
 Also change the name of this SCC from `restricted` to `cassandra-scc-userXX`, replacing XX with your user ID that you have been using in the labs so far. You can also update the `kubernetes.io/description` if you wish.
 
+Lastly, we need to update the groups section from
+```
+groups:
+- system:authenticated
+```
+to
+```
+groups:
+- system:serviceaccounts:userXX-lab10-scc
+```
+
+Remember to replace `userXX-lab10-scc` with your own project name.
+
 Save and exit the file.
 
 Apply this file to the cluster
