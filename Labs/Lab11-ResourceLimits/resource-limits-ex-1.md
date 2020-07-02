@@ -98,7 +98,7 @@ $ oc create -f pod.yaml
 pod/lab011-ex-1-nhvl4 created
 ```
 
-Because we used the `generateName` feature in the pod spec, we can keep redeploying the pod without having to edit the file and specify a new name. Repeat this step 4 times
+Because we used the `generateName` feature in the pod spec combined with `oc create`, we can keep redeploying the pod without having to edit the file and specify a new name. Repeat this step 4 times
 
 ```
 $ oc create -f pod.yaml

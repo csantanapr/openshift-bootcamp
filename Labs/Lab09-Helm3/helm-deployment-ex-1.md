@@ -284,6 +284,8 @@ Now that we have a packaged Helm chart, we can deploy another instance of it to 
 
 For example, if we wanted to use a different image tag instead of `v1`, potentially simulating another team that is deploying a stable version of our Python application, we can install the chart using the following
 
+Before installing, ask your cluster administrator to enable the use of the `anyuid` Security Context Constraint, providing your project name.
+
 ```
 $ helm3 install my-python-v1 python-app-0.1.0.tgz --set image.tag=latest
 ```
