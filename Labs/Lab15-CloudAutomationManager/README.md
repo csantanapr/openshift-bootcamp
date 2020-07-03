@@ -2,7 +2,7 @@
 
 This lab consists of one execise
 
-Ex 1 - https://www.ibm.com/cloud/architecture/tutorials/ibm-cloud-private-cloud-automation-manager
+Ex 1 - https://developer.ibm.com/cloudautomation/tutorials/end-end-scenario-shared-parameters-cloud-automation-manager/
 
 For this lab, due to environment restrictions, you will not be able to actually deploy your CAM templates to the specified AWS cloud provider, only build them with the CAM Template Designer.
 
