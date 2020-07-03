@@ -115,9 +115,11 @@ You can also view the generated AppsodyApplication resource type by navigating t
 
 ![](img/appsodyapplication-resource.png)
 
-After you created your deployment manifest, you can then push your application code to Github.
+# Part 2 - Creating a Tekton Pipeline to Deploy the Appsody Application
 
-For this step, you'll need to create a GitHub account, if you don't aleady have one. If you need to create one, you can follow the steps [here](../Getting-started/Creating-a-github-account.md).
+After you have created your deployment manifest using appsody build, you can push your application code to Github to be consumed by a Tekton pipeline.
+
+For this step, you'll need an accessible GitHub account. If you need to create one, you can follow the steps [here](../Getting-started/Creating-a-github-account.md).
 
 Create a new repository called `appsody-nodejs-express` and copy the repository URL given to you when you create it.
 
