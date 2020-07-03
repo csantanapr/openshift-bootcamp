@@ -235,7 +235,13 @@ $ helm3 lint python-app/
 
 This means our chart is ready to deploy to OpenShift.
 
-Prior to the next section, contact the cluster administrator to give you the appropriate Security Context Constraint, providing your project name.
+The deployed container image requires to be run with the root user, which requires the `anyuid` Security Context Constraint.
+
+To enable the use of the `anyuid` SCC, you would run the following command
+
+```
+oc adm policy add-scc-to-user anyuid -z default
+```
 
 Helm offers a `--dry-run` argument that allows you to run the installer on the chart, but not actually deploy anything. This is particularly useful with the `--debug` argument that will output the contents of all the generated Kubernetes resources to stdout so you can check the resources formatting before packaging. Used in conjunction with an overriding `values.yaml` you can simulate a user deployment with custom values and check to ensure the output is correct. 
 

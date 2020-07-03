@@ -162,7 +162,6 @@ Now check the currently deployedd pods
 
 ```
 $ oc get pods
-NAME                       READY   STATUS    RESTARTS   AGE
 NAME                READY   STATUS    RESTARTS   AGE
 lab011-ex-1-cddsb   1/1     Running   0          5m1s
 lab011-ex-1-nhvl4   1/1     Running   0          7m7s

@@ -60,8 +60,6 @@ To enable the use of the `anyuid` SCC, you would run the following command
 oc adm policy add-scc-to-user anyuid -z default
 ```
 
-Ask your system administrator to do this for you.
-
 Next we need to deploy the StatefulSet. Below is the definition for a 3-replica Nginx web application. With the use of the `volumeClaimTemplates`, we can define specific storage requirements for the pods. It also means that each pod in the StatefulSet will create it's own indexed Persistent Volume Claim using the dynamic provisioner we created earlier. 
 
 Create a new file `webapp-sts.yaml`

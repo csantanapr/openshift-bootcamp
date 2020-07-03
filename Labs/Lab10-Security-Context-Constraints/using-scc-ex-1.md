@@ -312,7 +312,7 @@ $ oc adm policy add-scc-to-user cassandra-scc-user99 system:serviceaccount:user9
 securitycontextconstraints.security.openshift.io/cassandra-scc-user99 added to: ["system:serviceaccount:user99-lab10-scc:default"]
 ```
 
-Now that the new SCC is in place, we should now see a cassandra pod starting up
+Now that the new SCC is in place, we should now see a cassandra pod starting up.
 
 ```
 $ oc get pods
