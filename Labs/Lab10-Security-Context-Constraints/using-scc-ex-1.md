@@ -1,6 +1,6 @@
 # Exercise 1 - Creating and Using Security Context Constraints
 
-In this lab you'll create a new Cassandra database application that requires additional privileges above what the default `restricted` Security Context Constraint (SCC) provides. You'll see how we can create and apply a new Security Context Constraint so that the application can run.
+In this lab you'll create a new MongoDB database application that requires additional privileges above what the default `restricted` Security Context Constraint (SCC) provides. You'll see how we can create and apply a new Security Context Constraint so that the application can run.
 
 To get started, log into OpenShift using the CLI, as described [here](../Getting-started/log-in-to-openshift.md).
 
@@ -35,120 +35,95 @@ To create the headless service, create a file calledd `headless-svc.yaml`
 apiVersion: v1
 kind: Service
 metadata:
+  name: mongo
   labels:
-    app: cassandra
-  name: cassandra
+    name: mongo
 spec:
-  clusterIP: None
   ports:
-  - port: 9042
+  - port: 27017
+    targetPort: 27017
+  clusterIP: None
   selector:
-    app: cassandra
+    role: mongo
 ```
 
 Create the service
 
 ```
 $ oc create -f headless-svc.yaml
-service/cassandra created
+service/mongodb created
 ```
 
-Next we need to deploy the StatefulSet. Below is the definition for a Cassandra database with 3 replicas. With the use of the `volumeClaimTemplates`, we can define specific storage requirements for the database pods. It also means that each pod in the StatefulSet will create it's own indexed Persistent Volume Claim using a dynamic provisioner available within the cluster. 
+Next we need to deploy the StatefulSet. Below is the definition for a MongoDB database with 3 replicas. With the use of the `volumeClaimTemplates`, we can define specific storage requirements for the database pods. It also means that each pod in the StatefulSet will create it's own indexed Persistent Volume Claim using a dynamic provisioner available within the cluster. 
 
 
-Create a new file `cassandra-sts.yaml`
+Create a new file `mongodb-sts.yaml`
 
 ```
-apiVersion: apps/v1
+apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  name: cassandra
-  labels:
-    app: cassandra
+  name: mongo
 spec:
-  serviceName: cassandra
+  serviceName: "mongo"
   replicas: 3
-  selector:
-    matchLabels:
-      app: cassandra
   template:
     metadata:
       labels:
-        app: cassandra
+        role: mongo
+        environment: test
     spec:
-      terminationGracePeriodSeconds: 1800
+      terminationGracePeriodSeconds: 10
       containers:
-      - name: cassandra
-        image: gcr.io/google-samples/cassandra:v13
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 7000
-          name: intra-node
-        - containerPort: 7001
-          name: tls-intra-node
-        - containerPort: 7199
-          name: jmx
-        - containerPort: 9042
-          name: cql
-        resources:
-          limits:
-            cpu: "500m"
-            memory: 1Gi
-          requests:
-            cpu: "500m"
-            memory: 1Gi
-        securityContext:
-          capabilities:
-            add:
+        - name: mongo
+          image: mongo:3.4
+          command:
+            - mongod
+            - "--replSet"
+            - rs0
+            - "--bind_ip"
+            - 0.0.0.0
+            - "--smallfiles"
+            - "--noprealloc"
+          ports:
+            - containerPort: 27017
+          resources:
+            limits:
+              cpu: "500m"
+              memory: 1Gi
+            requests:
+              cpu: "500m"
+              memory: 1Gi
+          securityContext:
+            capabilities:
+              add:
               - IPC_LOCK
-        lifecycle:
-          preStop:
-            exec:
-              command: 
-              - /bin/sh
-              - -c
-              - nodetool drain
-        env:
-          - name: MAX_HEAP_SIZE
-            value: 512M
-          - name: HEAP_NEWSIZE
-            value: 100M
-          - name: CASSANDRA_SEEDS
-            value: "cassandra-0.cassandra"
-          - name: CASSANDRA_CLUSTER_NAME
-            value: "K8Demo"
-          - name: POD_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-        readinessProbe:
-          exec:
-            command:
-            - /bin/bash
-            - -c
-            - /ready-probe.sh
-          initialDelaySeconds: 15
-          timeoutSeconds: 5
-        volumeMounts:
-        - name: cassandra-data
-          mountPath: /cassandra_data
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+        - name: mongo-sidecar
+          image: cvallance/mongo-k8s-sidecar
+          env:
+            - name: MONGO_SIDECAR_POD_LABELS
+              value: "role=mongo,environment=test"
   volumeClaimTemplates:
   - metadata:
-      name: cassandra-data
+      name: mongo-data
     spec:
       accessModes: [ "ReadWriteOnce" ]
       storageClassName: managed-nfs-storage
       resources:
         requests:
-          storage: 1Gi
+          storage: 2Gi
 ```
+
 
 Verify the Statefulset was created
 
 ```
 $ oc get statefulset
-NAME        READY   AGE
-cassandra   0/3     3s
+NAME      READY   AGE
+mongodb   0/3     3s
 
 $ oc get pods
 No resources found
@@ -163,30 +138,31 @@ Usually one of the first problems for a database deployment might be that the st
 ```
 $ oc get pvc
 NAME                         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS          AGE
-cassandra-data-cassandra-0   Bound    pvc-43aa0899-be91-480a-82d7-31bd1fa39ed7   1Gi        RWO            managed-nfs-storage   83s
+mongo-data-mongo-0           Bound    pvc-43aa0899-be91-480a-82d7-31bd1fa39ed7   1Gi        RWO            managed-nfs-storage   83s
 ```
 
 Looks like the storage was created fine. Let's check the events for the project
 
 ```
 $ oc get events
-LAST SEEN   TYPE      REASON                  OBJECT                                             MESSAGE
-75s         Normal    ExternalProvisioning    persistentvolumeclaim/cassandra-data-cassandra-0   waiting for a volume to be created, either by external provisioner "nfs-provisioning" or manually created by system administrator
-75s         Normal    Provisioning            persistentvolumeclaim/cassandra-data-cassandra-0   External provisioner is provisioning volume for claim "user99-lab10-scc/cassandra-data-cassandra-0"
-75s         Normal    ProvisioningSucceeded   persistentvolumeclaim/cassandra-data-cassandra-0   Successfully provisioned volume pvc-43aa0899-be91-480a-82d7-31bd1fa39ed7
-75s         Normal    SuccessfulCreate        statefulset/cassandra                              create Claim cassandra-data-cassandra-0 Pod cassandra-0 in StatefulSet cassandra success
-34s         Warning   FailedCreate            statefulset/cassandra                              create Pod cassandra-0 in StatefulSet cassandra failed error: pods "cassandra-0" is forbidden: unable to validate against any security context constraint: [capabilities.add: Invalid value: "IPC_LOCK": capability may not be added]
+LAST SEEN   TYPE      REASON                  OBJECT                                                   MESSAGE
+9s          Normal    ExternalProvisioning    persistentvolumeclaim/mongo-persistent-storage-mongo-0   waiting for a volume to be created, either by external provisioner "nfs-provisioning" or manually created by system administrator
+9s          Normal    Provisioning            persistentvolumeclaim/mongo-persistent-storage-mongo-0   External provisioner is provisioning volume for claim "user99-lab10-scc/mongo-persistent-storage-mongo-0"
+9s          Normal    ProvisioningSucceeded   persistentvolumeclaim/mongo-persistent-storage-mongo-0   Successfully provisioned volume pvc-51f17522-e956-4489-a751-3b3766589a2c
+9s          Normal    SuccessfulCreate        statefulset/mongo                                        create Claim mongo-persistent-storage-mongo-0 Pod mongo-0 in StatefulSet mongo success
+4s          Warning   FailedCreate            statefulset/mongo                                        create Pod mongo-0 in StatefulSet mongo failed error: pods "mongo-0" is forbidden: unable to validate against any security context constraint: [capabilities.add: Invalid value: "IPC_LOCK": capability may not be added]
+
 ```
 
-So now we have found the source of the error. Defined in the `cassandra-sts.yaml` is the code
+So now we have found the source of the error. Defined in the `mongodb-sts.yaml` is the code
 ```
 securityContext:
   capabilities:
     add:
-      - IPC_LOCK
+    - IPC_LOCK
 ```
 
-So this means that the Cassandra application requires the use of `IPC_LOCK` to be able to run. In any OpenShift cluster the default Security Context Constraint is the `restricted` SCC, which clearly does not provide the right level of privileges we need to run this application.
+So this means that the MongoDB application requires the use of `IPC_LOCK` to be able to run. In any OpenShift cluster the default Security Context Constraint is the `restricted` SCC, which clearly does not provide the right level of privileges we need to run this application.
 
 We can check what privileges the `restricted` SCC does have 
 
@@ -248,7 +224,7 @@ We can use the `restricted` SCC as a base for the new SCC.
 First save the `restricted` SCC locally
 
 ```
-$ oc get scc restricted -o yaml --export > cassandra-scc.yaml
+$ oc get scc restricted -o yaml --export > mongodb-scc.yaml
 ```
 
 Edit this file and add the section `allowedCapabilities: null` to the following
@@ -258,7 +234,7 @@ allowedCapabilities:
 - IPC_LOCK
 ```
 
-Also change the name of this SCC from `restricted` to `cassandra-scc-userXX`, replacing XX with your user ID that you have been using in the labs so far. You can also update the `kubernetes.io/description` if you wish.
+Also change the name of this SCC from `restricted` to `mongodb-scc-userXX`, replacing XX with your user ID that you have been using in the labs so far. You can also update the `kubernetes.io/description` if you wish.
 
 Lastly, we need to update the groups section from
 ```
@@ -278,8 +254,8 @@ Save and exit the file.
 Apply this file to the cluster
 
 ```
-$ oc create -f cassandra-scc.yaml
-securitycontextconstraints.security.openshift.io/cassandra-scc created
+$ oc create -f mongodb-scc.yaml
+securitycontextconstraints.security.openshift.io/mongodb-scc created
 ```
 
 Verify the new SCC exists in the list of SCCs available
@@ -288,7 +264,7 @@ Verify the new SCC exists in the list of SCCs available
 $ oc get scc
 NAME                   AGE
 anyuid                 108d
-cassandra-scc-user99   5s
+mongodb-scc-user99     5s
 hostaccess             108d
 hostmount-anyuid       108d
 hostnetwork            108d
@@ -298,29 +274,34 @@ privileged             108d
 restricted             108d
 ```
 
-Now we need to apply this SCC to the currrent project. OpenShift makes it very simple to do this with just one command. This command will create all the other required resources that allows the service account within our project (the cassandra deployment only uses the default service account anyway) to consume the SCC. This command takes the following format: `oc adm policy add-scc-to-user [SCC] [SERVICEACCOUNT]`
+Now we need to apply this SCC to the currrent project. OpenShift makes it very simple to do this with just one command. This command will create all the other required resources that allows the service account within our project (the mongodb deployment only uses the default service account anyway) to consume the SCC. This command takes the following format: `oc adm policy add-scc-to-user [SCC] [SERVICEACCOUNT]`. The long name for the service acccount in this instance would be `system:serviceaccount:user99-lab10-scc:default`, but as we're in the current `user99-lab10-scc` project we can simply replace this with `-z default`.
 
 ```
-$ oc adm policy add-scc-to-user cassandra-scc-user99 -z default
-securitycontextconstraints.security.openshift.io/cassandra-scc-user99 added to: ["system:serviceaccount:user99-lab10-scc:default"]
+$ oc adm policy add-scc-to-user mongodb-scc-user99 -z default
+securitycontextconstraints.security.openshift.io/mongodb-scc-user99 added to: ["system:serviceaccount:user99-lab10-scc:default"]
 ```
 
-Or alternatively
-
-```
-$ oc adm policy add-scc-to-user cassandra-scc-user99 system:serviceaccount:user99-lab10-scc:default
-securitycontextconstraints.security.openshift.io/cassandra-scc-user99 added to: ["system:serviceaccount:user99-lab10-scc:default"]
-```
-
-Now that the new SCC is in place, we should now see a cassandra pod starting up.
+Now that the new SCC is in place, we should now see a mongodb pod starting up.
 
 ```
 $ oc get pods
-NAME          READY   STATUS             RESTARTS   AGE
-cassandra-0   0/1     CrashLoopBackOff   7          12m
+NAME      READY   STATUS    RESTARTS   AGE
+mongo-0   2/2     Running   0          2m32s
+mongo-1   2/2     Running   0          2m
+mongo-2   2/2     Running   0          87s
 ```
 
-Ignore the errors as we have met the goals of the lab.
+We can now see that all the PVCs have been created for all our pods too
+
+```
+$ oc get pvc
+NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS          AGE
+mongo-data-mongo-0                 Bound    pvc-790f4604-3a7d-4693-a3cc-b6e275b72e0a   2Gi        RWO            managed-nfs-storage   10m
+mongo-data-mongo-1                 Bound    pvc-420d1870-dd6e-4b37-9570-77475aab6865   2Gi        RWO            managed-nfs-storage   2m18s
+mongo-data-mongo-2                 Bound    pvc-9908fc90-289a-4bba-b76e-23c1545ce02c   2Gi        RWO            managed-nfs-storage   105s
+```
+
+We successfully created a new Security Context Constraint to meet the demands of the application.
 
 When ready, remove the resources created and the project.
 
